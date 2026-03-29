@@ -69,6 +69,26 @@ jobs:
             platform/3ds/*.3dsx
             platform/3ds/*.cia
 
+  nds:
+    name: Nintendo DS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules : recursive
+
+      - name: Build
+        run: |
+          docker run -e ENABLE_COMPATIBILITY_REPORTING -v $GITHUB_WORKSPACE:/build_dir devkitpro/devkitarm /bin/bash -ex /build_dir/.github/workflows/buildnds.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nintendo DS
+          path: |
+            platform/nds/*.nds
+
   switch-standalone:
     name: Switch
     runs-on: ubuntu-latest
