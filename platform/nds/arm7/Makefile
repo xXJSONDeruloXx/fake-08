@@ -16,7 +16,7 @@ include $(DEVKITARM)/ds_rules
 #---------------------------------------------------------------------------------
 BUILD    := build
 SOURCES  := source
-INCLUDES := ../../../source ../../../libs/z8lua include build
+INCLUDES := build
 DATA     :=
 
 #---------------------------------------------------------------------------------

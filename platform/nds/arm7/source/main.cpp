@@ -2,13 +2,13 @@
 
 	default ARM7 core
 
-		Copyright (C) 2005 - 2010
-		Michael Noland (joat)
-		Jason Rogers (dovoto)
-		Dave Murphy (WinterMute)
+	Copyright (C) 2005 - 2010
+	Michael Noland (joat)
+	Jason Rogers (dovoto)
+	Dave Murphy (WinterMute)
 
 	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any
+	warranty. In no event will the authors be held liable for any
 	damages arising from the use of this software.
 
 	Permission is granted to anyone to use this software for any
@@ -27,83 +27,34 @@
 		distribution.
 
 ---------------------------------------------------------------------------------*/
-#include "sound.h"
-
+#include <calico.h>
 #include <nds.h>
 #include <maxmod7.h>
 
-volatile bool exitflag = false;
-volatile unsigned int frameCount = 0;
-
-//---------------------------------------------------------------------------------
-void VblankHandler(void) {
-//---------------------------------------------------------------------------------
-	frameCount++;
-}
-
-//---------------------------------------------------------------------------------
-void VcountHandler(void) {
-//---------------------------------------------------------------------------------
-	inputGetAndSend();
-}
-
-//---------------------------------------------------------------------------------
-void powerButtonCB() {
-//---------------------------------------------------------------------------------
-	exitflag = true;
-}
-
-void *fifoWaitAddress(FifoChannels channel) {
-	while (!fifoCheckAddress(channel))
-		swiIntrWait(1, IRQ_FIFO_NOT_EMPTY);
-
-	return fifoGetAddress(FIFO_USER_01);
-}
-
-//---------------------------------------------------------------------------------
 int main() {
-//---------------------------------------------------------------------------------
-	// clear sound registers
-	dmaFillWords(0, (void*)0x04000400, 0x100);
+	envReadNvramSettings();
+	keypadStartExtServer();
 
-	REG_SOUNDCNT |= SOUND_ENABLE;
-	writePowerManagement(PM_CONTROL_REG, (readPowerManagement(PM_CONTROL_REG) & ~PM_SOUND_MUTE ) | PM_SOUND_AMP);
-	powerOn(POWER_SOUND);
+	lcdSetIrqMask(DISPSTAT_IE_ALL, DISPSTAT_IE_VBLANK);
+	irqEnable(IRQ_VBLANK);
 
-	readUserSettings();
-	ledBlink(0);
+	rtcInit();
+	rtcSyncTime();
+	pmInit();
+	blkInit();
 
-	irqInit();
-	// Start the RTC tracking IRQ
-	initClockIRQ();
-	fifoInit();
 	touchInit();
+	touchStartServer(80, MAIN_THREAD_PRIO);
 
-	mmInstall(FIFO_MAXMOD);
+	soundStartServer(MAIN_THREAD_PRIO - 0x10);
+	micStartServer(MAIN_THREAD_PRIO - 0x18);
+	wlmgrStartServer(MAIN_THREAD_PRIO - 8);
 
-	SetYtrigger(80);
+	mmInstall(MAIN_THREAD_PRIO + 1);
 
-	installSoundFIFO();
-
-	installSystemFIFO();
-
-	irqSet(IRQ_VCOUNT, VcountHandler);
-
-	irqEnable(IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
-
-	setPowerButtonCB(powerButtonCB);
-
-	// Start audio
-	audioSetup(fifoWaitAddress(FIFO_USER_01), fifoWaitAddress(FIFO_USER_01), fifoWaitAddress(FIFO_USER_01));
-
-	// Keep the ARM7 mostly idle
-	while (!exitflag) {
-		if (0 == (REG_KEYINPUT & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
-			exitflag = true;
-		}
-		swiWaitForVBlank();
-		if((frameCount % 30) == 0) // TODO
-			mmStreamUpdate();
+	while (pmMainLoop()) {
+		threadWaitForVBlank();
 	}
+
 	return 0;
 }

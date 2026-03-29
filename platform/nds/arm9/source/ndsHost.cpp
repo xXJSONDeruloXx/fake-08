@@ -32,9 +32,16 @@ u16 touchY;
 uint8_t mouseBtnState;
 
 Audio *_audio;
-u32 *waveBuffer, *workBuffer;
 uint16_t _rgb555Colors[144];
 int targetFps = 60;
+
+static mm_word onStreamRequest(mm_word length, mm_addr dest, mm_stream_formats format) {
+	(void)format;
+	if (_audio != nullptr) {
+		_audio->FillMonoAudioBuffer((void*)dest, 0, length);
+	}
+	return length;
+}
 
 int consoleModel = 0;
 
@@ -110,18 +117,19 @@ void setRenderParamsFromStretch(StretchOption stretch) {
 
 void audioSetup() {
 	mm_ds_system sys;
-	sys.mod_count 			= 0;
-	sys.samp_count			= 0;
-	sys.mem_bank			= 0;
-	sys.fifo_channel		= FIFO_MAXMOD;
+	sys.mod_count = 0;
+	sys.samp_count = 0;
+	sys.mem_bank = 0;
 	mmInit(&sys);
 
-	// Tell ARM 7 we're ready for audio
-	waveBuffer = new u32[SAMPLESPERBUF];
-	workBuffer = new u32[SAMPLESPERBUF];
-	fifoSendAddress(FIFO_USER_01, _audio);
-	fifoSendAddress(FIFO_USER_01, waveBuffer);
-	fifoSendAddress(FIFO_USER_01, workBuffer);
+	mm_stream stream;
+	stream.sampling_rate = SAMPLERATE;
+	stream.buffer_length = SAMPLESPERBUF;
+	stream.callback = onStreamRequest;
+	stream.format = MM_STREAM_16BIT_MONO;
+	stream.timer = MM_TIMER0;
+	stream.manual = true;
+	mmStreamOpen(&stream);
 }
 
 // void fifoPrinter(u32 value32, void *userdata) {
@@ -212,9 +220,6 @@ void Host::oneTimeSetup(Audio *audio) {
 }
 
 void Host::oneTimeCleanup() {
-	delete[] waveBuffer;
-	delete[] workBuffer;
-
 	saveSettingsIni();
 }
 
@@ -223,6 +228,8 @@ void Host::setTargetFps(int fps) {
 }
 
 void Host::waitForTargetFps() {
+	mmStreamUpdate();
+
 	while (framesSinceWait < 60 / targetFps) {
 		swiWaitForVBlank();
 	}
