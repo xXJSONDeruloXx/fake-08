@@ -16,8 +16,8 @@ include $(DEVKITARM)/ds_rules
 # all directories are relative to this makefile
 #---------------------------------------------------------------------------------
 BUILD    := build
-SOURCES  := $(foreach dir,$(SOURCES),../$(dir)) source
-INCLUDES := $(foreach dir,$(INCLUDES),../$(dir)) include
+SOURCES  := ../../../source z8lua ../../../libs/lodepng ../../../libs/simpleini ../../../libs/miniz source
+INCLUDES := ../../../source z8lua ../../../libs/lodepng ../../../libs/simpleini ../../../libs/miniz include
 DATA     :=
 GRAPHICS :=
 
@@ -28,7 +28,7 @@ ARCH := -march=armv5te -mtune=arm946e-s
 
 CFLAGS   := -g -Wall -O2 -ffunction-sections -fdata-sections\
             $(ARCH) $(INCLUDE) -DARM9 -D_NDS
-CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
+CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -std=gnu++17
 ASFLAGS  := -g $(ARCH)
 LDFLAGS   = -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
@@ -88,7 +88,7 @@ export OFILES := $(PNGFILES:.png=.o) $(OFILES_BIN) $(OFILES_SOURCES)
 
 export HFILES := $(PNGFILES:.png=.h) $(addsuffix .h,$(subst .,_,$(BINFILES)))
 
-export INCLUDE  := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir))\
+export INCLUDE  := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir))\
                    $(foreach dir,$(LIBDIRS),-I$(dir)/include)\
                    -I$(CURDIR)/$(BUILD)
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
