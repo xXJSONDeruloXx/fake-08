@@ -28,7 +28,7 @@ ARCH := -march=armv5te -mtune=arm946e-s
 
 CFLAGS   := -g -Wall -O2 -ffunction-sections -fdata-sections\
             $(ARCH) $(INCLUDE) -DARM9 -D_NDS
-CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -std=gnu++17
+CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 ASFLAGS  := -g $(ARCH)
 LDFLAGS   = -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 

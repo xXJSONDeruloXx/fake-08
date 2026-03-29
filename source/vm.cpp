@@ -1169,7 +1169,7 @@ void Vm::update_prng()
 
 fix32 Vm::api_rnd()
 {
-    return api_rnd(fix32(int32_t(1)));
+    return api_rnd((fix32)1);
 }
 
 fix32 Vm::api_rnd(fix32 in_range)

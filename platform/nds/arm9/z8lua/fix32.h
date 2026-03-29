@@ -43,20 +43,6 @@ struct fix32
     // does too many implicit conversions from int that we can’t mark this
     // one as explicit.
     inline fix32(int32_t x)  : m_bits(int32_t(x << 16)) {}
-
-    template<typename T,
-             typename std::enable_if<std::is_integral<T>::value &&
-                                     !std::is_same<T, int8_t>::value &&
-                                     !std::is_same<T, uint8_t>::value &&
-                                     !std::is_same<T, int16_t>::value &&
-                                     !std::is_same<T, uint16_t>::value &&
-                                     !std::is_same<T, int32_t>::value &&
-                                     !std::is_same<T, uint32_t>::value &&
-                                     !std::is_same<T, int64_t>::value &&
-                                     !std::is_same<T, uint64_t>::value &&
-                                     !std::is_same<T, long>::value &&
-                                     !std::is_same<T, unsigned long>::value>::type *...>
-    inline fix32(T x) : m_bits(int32_t(x << 16)) {}
     
     inline explicit fix32(uint16_t x) : m_bits(int32_t(x << 16)) {}
     inline explicit fix32(uint32_t x) : m_bits(int32_t(x << 16)) {}
@@ -237,7 +223,7 @@ struct fix32
         return frombits((uint32_t(x.bits()) >> y) | (x.bits() << (32 - y)));
     }
 
-#ifdef _3DS
+#if defined(_3DS) || defined(_NDS)
     inline explicit fix32(size_t x) : m_bits(int32_t(x << 16)) {}
 
     inline fix32(int x)  : m_bits(int(x << 16)) {}

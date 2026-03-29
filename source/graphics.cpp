@@ -867,7 +867,7 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my){
 		mx,
 		my,
 		fix32::frombits(0x2000), // 1/8
-		fix32(int32_t(0))
+		fix32(0)
 	);
 }
 
@@ -876,7 +876,7 @@ fix32 getTlineMask(uint8_t dim){
 		return fix32::frombits(0xffffff);
 	}
 
-	return fix32(int32_t(dim)) - fix32::frombits(1);
+	return fix32(dim) - fix32::frombits(1);
 }
 
 //ported from zepto 8 impl
@@ -906,8 +906,8 @@ void Graphics::tline(int x0, int y0, int x1, int y1, fix32 mx, fix32 my, fix32 m
     int delta = abs(xDifGreater ? x - x0 : y - y0);
     while (delta) {
         int step = std::min(8192, delta);
-        mx = (mx & ~xmask) | ((mx + mdx * fix32(int32_t(step))) & xmask);
-        my = (my & ~ymask) | ((my + mdy * fix32(int32_t(step))) & ymask);
+        mx = (mx & ~xmask) | ((mx + mdx * fix32(step)) & xmask);
+        my = (my & ~ymask) | ((my + mdy * fix32(step)) & ymask);
         delta -= step;
     }
 
@@ -1727,8 +1727,8 @@ void Graphics::spr(
 {
 	int spr_x = (n % 16) * 8;
 	int spr_y = (n / 16) * 8;
-	int16_t spr_w = (int16_t)(w * fix32(int32_t(8)));
-	int16_t spr_h = (int16_t)(h * fix32(int32_t(8)));
+	int16_t spr_w = (int16_t)(w * (fix32)8);
+	int16_t spr_h = (int16_t)(h * (fix32)8);
 	copySpriteToScreen(GetP8SpriteSheetBuffer(), x, y, spr_x, spr_y, spr_w, spr_h, flip_x, flip_y);
 }
 
