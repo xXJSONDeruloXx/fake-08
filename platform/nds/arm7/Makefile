@@ -22,13 +22,13 @@ DATA     :=
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH := -marm -mthumb-interwork
+ARCH := -march=armv4t -mtune=arm7tdmi -mthumb
 
-CFLAGS   := -Wall -Ofast\
+CFLAGS   := -g -Wall -Os -ffunction-sections -fdata-sections\
             $(ARCH) $(INCLUDE) -DARM7 -D_NDS
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
-ASFLAGS  := $(ARCH)
-LDFLAGS   = -specs=ds_arm7.specs $(ARCH) -Wl,--nmagic -Wl,-Map,$(notdir $*).map
+ASFLAGS  := -g $(ARCH)
+LDFLAGS   = -specs=ds_arm7.specs -g $(ARCH) -Wl,-Map,$(notdir $*).map
 
 LIBS := -lmm7 -lnds7
 
@@ -105,9 +105,6 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 $(ARM7ELF) : $(OFILES)
-	@echo linking $(notdir $@)
-	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
-
 
 #---------------------------------------------------------------------------------
 %.bin.o %_bin.h : %.bin

@@ -24,15 +24,15 @@ GRAPHICS :=
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH := -marm -mthumb-interwork -march=armv5te -mtune=arm946e-s
+ARCH := -march=armv5te -mtune=arm946e-s
 
-CFLAGS   := -Wall -Ofast\
+CFLAGS   := -g -Wall -O2 -ffunction-sections -fdata-sections\
             $(ARCH) $(INCLUDE) -DARM9 -D_NDS
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
-ASFLAGS  := $(ARCH)
-LDFLAGS   = -specs=ds_arm9.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
+ASFLAGS  := -g $(ARCH)
+LDFLAGS   = -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-CC = $(CXX) # Dumb and cursed, we're building C as C++
+CC = $(CXX)
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
@@ -88,7 +88,7 @@ export OFILES := $(PNGFILES:.png=.o) $(OFILES_BIN) $(OFILES_SOURCES)
 
 export HFILES := $(PNGFILES:.png=.h) $(addsuffix .h,$(subst .,_,$(BINFILES)))
 
-export INCLUDE  := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir))\
+export INCLUDE  := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir))\
                    $(foreach dir,$(LIBDIRS),-I$(dir)/include)\
                    -I$(CURDIR)/$(BUILD)
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
@@ -113,8 +113,6 @@ else
 # main targets
 #---------------------------------------------------------------------------------
 $(ARM9ELF) : $(OFILES)
-	@echo linking $(notdir $@)
-	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
 #---------------------------------------------------------------------------------
 %.bin.o %_bin.h : %.bin
